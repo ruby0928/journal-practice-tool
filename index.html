@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>會計分錄練習工具 - 功能完全體</title>
+    <title>會計分錄練習工具 - 規格檢核版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,14 +15,12 @@
         #sidebar-container { max-height: 85vh; overflow-y: auto; }
         .sortable-ghost { opacity: 0.3; background-color: #cbd5e1; }
         .calc-item { cursor: move; transition: all 0.2s; position: relative; }
-        .calc-item:hover { border-left: 2px solid #6366f1; background-color: #f8fafc; }
+        .calc-item:hover { border-left: 3px solid #6366f1; background-color: #f8fafc; }
         .subject-item {
             background-color: white; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 4px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: move; font-size: 14px; transition: border-color 0.2s;
         }
         .subject-item:hover { border-color: #6366f1; }
-        
-        /* 彈窗動畫 */
         @keyframes modalShow {
             from { opacity: 0; transform: scale(0.9) translateY(-20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
@@ -30,26 +28,26 @@
         .modal-animate { animation: modalShow 0.3s ease-out; }
     </style>
 </head>
-<body class="bg-slate-100 p-4">
+<body class="bg-slate-100 p-4 journal-font">
 
-    <div id="custom-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 modal-animate border border-indigo-50">
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-export">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 modal-animate border">
             <div class="text-center mb-4">
                 <span class="text-3xl">📝</span>
                 <h3 class="text-lg font-bold text-slate-700 mt-2">新增計算備註</h3>
             </div>
-            <textarea id="modal-input" class="w-full p-3 border-2 border-indigo-50 rounded-2xl outline-none focus:border-indigo-300 transition-all text-sm mb-4" rows="3" placeholder="例如：計算 X5 年折舊..."></textarea>
+            <textarea id="modal-input" class="w-full p-3 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-300 transition-all text-sm mb-4" rows="3"></textarea>
             <div class="flex gap-3">
                 <button onclick="closeModal()" class="flex-1 py-3 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition">取消</button>
-                <button onclick="confirmModal()" class="flex-1 py-3 rounded-2xl bg-indigo-500 text-white font-bold shadow-lg hover:bg-indigo-600 transition">確定新增</button>
+                <button onclick="confirmModal()" class="flex-1 py-3 rounded-2xl bg-indigo-500 text-white font-bold shadow-lg">確定</button>
             </div>
         </div>
     </div>
 
     <div id="export-content" class="max-w-7xl mx-auto">
-        <div id="problem-area" tabindex="0" class="focus-area mb-6 bg-white p-4 rounded-xl shadow-sm border-2 border-dashed border-slate-300 transition-all outline-none">
-            <h2 class="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2">📸 題目截圖區 (Ctrl+V 貼上)</h2>
-            <div id="image-placeholder" class="py-6 text-center text-slate-300 italic text-xs font-bold">點擊此處並貼上題目圖片</div>
+        <div id="problem-area" tabindex="0" class="focus-area mb-6 bg-white p-4 rounded-xl shadow-sm border-2 border-dashed border-slate-300 outline-none no-export">
+            <h2 class="text-sm font-bold text-slate-400 mb-2">📸 貼上題目截圖 (Ctrl+V)</h2>
+            <div id="image-placeholder" class="py-6 text-center text-slate-300 italic text-xs font-bold">點擊此處並貼上圖片</div>
             <div id="image-preview" class="flex justify-center"></div>
             <button id="clear-img" class="hidden mt-2 text-xs text-red-400 hover:underline no-export font-bold">移除圖片</button>
         </div>
@@ -57,17 +55,14 @@
         <header class="text-center mb-6 no-export">
             <h1 class="text-3xl font-bold text-slate-800">會計分錄練習工具</h1>
             <div class="mt-4 flex flex-col items-center gap-3">
-                <div class="inline-flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm border journal-font">
-                    <select id="year" class="outline-none border-b border-slate-300 font-bold bg-transparent text-slate-700">
+                <div class="inline-flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm border">
+                    <select id="year" class="outline-none border-b border-slate-300 font-bold bg-transparent">
                         <option value="">年</option><option value="X0">X0</option><option value="X1">X1</option><option value="X2">X2</option><option value="X3">X3</option><option value="X4">X4</option><option value="X5">X5</option><option value="X6">X6</option><option value="X7">X7</option><option value="X8">X8</option><option value="X9">X9</option>
                     </select>
-                    <span class="text-slate-400 text-sm font-bold">年</span>
-                    <div id="date-input-container" class="inline-flex items-center gap-2 text-slate-700">
+                    <div id="date-input-container" class="inline-flex items-center gap-2">
                         <div id="mode-md" class="flex items-center gap-2">
                             <select id="month" class="outline-none border-b border-slate-300 font-bold bg-transparent"><option value="">月</option></select>
-                            <span class="text-slate-400 text-sm font-bold">月</span>
                             <select id="day" class="outline-none border-b border-slate-300 font-bold bg-transparent"><option value="">日</option></select>
-                            <span class="text-slate-400 text-sm font-bold">日</span>
                         </div>
                         <div id="mode-quarter" class="hidden flex items-center gap-2">
                             <select id="quarter" class="outline-none border-b border-slate-300 font-bold bg-transparent">
@@ -75,247 +70,90 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="toggleDateMode()" class="no-export ml-2 p-1 px-2 bg-slate-100 hover:bg-slate-200 rounded text-[10px] text-slate-500 font-bold border transition-all">🔄 模式</button>
+                    <button onclick="toggleDateMode()" class="no-export p-1 px-2 bg-slate-50 rounded text-[10px] font-bold border transition-all">🔄</button>
                 </div>
             </div>
         </header>
 
         <div class="flex flex-col md:flex-row gap-6 items-start">
             <div id="sidebar-container" class="w-full md:w-1/4 flex flex-col gap-4 no-export">
-                
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="font-bold border-b mb-3 pb-2 text-slate-700 text-sm">🆕 科目管理工具</h2>
-                    <div class="space-y-3">
-                        <input type="text" id="custom-subject-name" placeholder="輸入新科目名稱" class="w-full border-b p-1 text-sm outline-none focus:border-indigo-500 font-bold">
-                        <select id="custom-subject-type" class="w-full border-b p-1 text-sm outline-none bg-transparent font-bold">
-                            <option value="assets">1. 資產類</option>
-                            <option value="liabilities">2. 負債類</option>
-                            <option value="equity">3. 權益類</option>
-                            <option value="revenue">4. 收益類</option>
-                            <option value="expenses">5. 費損類</option>
-                        </select>
-                        <div class="flex gap-2">
-                            <button onclick="addSubjectToLibrary()" class="flex-1 bg-indigo-500 text-white text-[11px] py-2 rounded font-bold hover:bg-indigo-600">加入科目庫</button>
-                            <button onclick="createTemporarySubject()" class="flex-1 bg-slate-100 text-slate-600 text-[11px] py-2 rounded font-bold hover:bg-slate-200">僅本次拖曳</button>
-                        </div>
-                        <div id="temp-subject-container" class="mt-2 border-t pt-2 hidden">
-                            <div id="temp-pool" class="flex flex-wrap gap-2 mt-1"></div>
-                        </div>
+                    <h2 class="font-bold border-b mb-3 pb-2 text-slate-700 text-sm">🆕 科目管理</h2>
+                    <input type="text" id="custom-subject-name" placeholder="科目名稱" class="w-full border-b p-1 text-sm outline-none mb-3 font-bold">
+                    <select id="custom-subject-type" class="w-full border-b p-1 text-sm outline-none bg-transparent mb-3 font-bold">
+                        <option value="assets">1. 資產</option><option value="liabilities">2. 負債</option><option value="equity">3. 權益</option><option value="revenue">4. 收益</option><option value="expenses">5. 費損</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <button onclick="addSubjectToLibrary()" class="flex-1 bg-indigo-500 text-white text-[10px] py-2 rounded-lg font-bold">加入庫</button>
+                        <button onclick="createTemporarySubject()" class="flex-1 bg-slate-100 text-slate-500 text-[10px] py-2 rounded-lg font-bold">臨時</button>
                     </div>
+                    <div id="temp-subject-container" class="mt-2 border-t pt-2 hidden"><div id="temp-pool" class="flex flex-wrap gap-2"></div></div>
                 </div>
 
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="font-bold border-b mb-3 pb-2 text-slate-700 text-sm">📂 科目庫搜尋</h2>
-                    <input type="text" id="subject-search" oninput="filterSubjects()" placeholder="🔍 搜尋科目名稱..." class="w-full p-2 text-sm border rounded-full bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-200 mb-2">
-                    
+                    <h2 class="font-bold border-b mb-3 pb-2 text-slate-700 text-sm">📂 科目搜尋</h2>
+                    <input type="text" id="subject-search" oninput="filterSubjects()" placeholder="🔍 搜尋..." class="w-full p-2 text-sm border rounded-full bg-slate-50 outline-none mb-4">
                     <div id="library-lists" class="space-y-2 text-sm font-bold">
-                        <details class="group cat-section" id="cat-assets" open>
-                            <summary class="flex justify-between items-center p-2 bg-blue-50 text-blue-800 rounded cursor-pointer font-bold">1. 資產類 <span>▼</span></summary>
-                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container">
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">現金</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">銀行存款</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應收帳款</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">存貨</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">機器設備</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">累計折舊</div>
-                            </div>
-                        </details>
-                        <details class="group cat-section" id="cat-liabilities">
-                            <summary class="flex justify-between items-center p-2 bg-red-50 text-red-800 rounded cursor-pointer font-bold">2. 負債類 <span>▼</span></summary>
-                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container">
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應付帳款</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應付票據</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">短期借款</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應付公司債</div>
-                            </div>
-                        </details>
-                        <details class="group cat-section" id="cat-equity">
-                            <summary class="flex justify-between items-center p-2 bg-purple-50 text-purple-800 rounded cursor-pointer font-bold">3. 權益類 <span>▼</span></summary>
-                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">普通股股本</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">保留盈餘</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">資本公積</div>
-                            </div>
-                        </details>
-                        <details class="group cat-section" id="cat-revenue">
-                            <summary class="flex justify-between items-center p-2 bg-green-50 text-green-800 rounded cursor-pointer font-bold">4. 收益類 <span>▼</span></summary>
-                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨收入</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">債務整理利益</div>
-                            </div>
-                        </details>
-                        <details class="group cat-section" id="cat-expenses">
-                            <summary class="flex justify-between items-center p-2 bg-orange-50 text-orange-800 rounded cursor-pointer font-bold">5. 費損類 <span>▼</span></summary>
-                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨成本</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">折舊費用</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">薪資支出</div>
-                            </div>
-                        </details>
+                        <details class="group cat-section" id="cat-assets" open><summary class="p-2 bg-blue-50 text-blue-800 rounded-lg cursor-pointer">1. 資產類</summary><div class="p-2 flex flex-wrap gap-2 list-container"><div class="subject-item" draggable="true" ondragstart="drag(event)">現金</div><div class="subject-item" draggable="true" ondragstart="drag(event)">銀行存款</div><div class="subject-item" draggable="true" ondragstart="drag(event)">應收帳款</div><div class="subject-item" draggable="true" ondragstart="drag(event)">存貨</div><div class="subject-item" draggable="true" ondragstart="drag(event)">機器設備</div><div class="subject-item" draggable="true" ondragstart="drag(event)">累計折舊</div></div></details>
+                        <details class="group cat-section" id="cat-liabilities"><summary class="p-2 bg-red-50 text-red-800 rounded-lg cursor-pointer">2. 負債類</summary><div class="p-2 flex flex-wrap gap-2 list-container"><div class="subject-item" draggable="true" ondragstart="drag(event)">應付帳款</div><div class="subject-item" draggable="true" ondragstart="drag(event)">應付票據</div></div></details>
+                        <details class="group cat-section" id="cat-equity"><summary class="p-2 bg-purple-50 text-purple-800 rounded-lg cursor-pointer">3. 權益類</summary><div class="p-2 flex flex-wrap gap-2 list-container"><div class="subject-item" draggable="true" ondragstart="drag(event)">普通股股本</div><div class="subject-item" draggable="true" ondragstart="drag(event)">保留盈餘</div></div></details>
+                        <details class="group cat-section" id="cat-revenue"><summary class="p-2 bg-green-50 text-green-800 rounded-lg cursor-pointer">4. 收益類</summary><div class="p-2 flex flex-wrap gap-2 list-container"><div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨收入</div></div></details>
+                        <details class="group cat-section" id="cat-expenses"><summary class="p-2 bg-orange-50 text-orange-800 rounded-lg cursor-pointer">5. 費損類</summary><div class="p-2 flex flex-wrap gap-2 list-container"><div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨成本</div><div class="subject-item" draggable="true" ondragstart="drag(event)">折舊費用</div><div class="subject-item" draggable="true" ondragstart="drag(event)">薪資支出</div></div></details>
                     </div>
                 </div>
             </div>
 
             <div class="w-full md:w-3/4 flex flex-col gap-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div id="debit-zone" class="drop-zone bg-white p-6 rounded-lg shadow border min-h-[300px]" ondrop="drop(event, '借方')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                        <h2 class="font-bold text-blue-600 border-b-2 border-blue-500 mb-4 pb-2 italic text-lg text-left underline underline-offset-4">Debit 借方</h2>
-                        <ul id="debit-list" class="space-y-4"></ul>
+                    <div id="debit-zone" class="drop-zone bg-white p-6 rounded-2xl shadow-sm border min-h-[300px]" ondrop="drop(event, '借方')" ondragover="allowDrop(event)">
+                        <h2 class="font-bold text-blue-600 border-b mb-4 pb-2 italic text-lg">Debit 借方</h2><ul id="debit-list" class="space-y-4 font-bold"></ul>
                     </div>
-                    <div id="credit-zone" class="drop-zone bg-white p-6 rounded-lg shadow border min-h-[300px]" ondrop="drop(event, '貸方')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                        <h2 class="font-bold text-red-600 border-b-2 border-red-500 mb-4 pb-2 italic text-lg text-right underline underline-offset-4">Credit 貸方</h2>
-                        <ul id="credit-list" class="space-y-4 pr-2"></ul>
+                    <div id="credit-zone" class="drop-zone bg-white p-6 rounded-2xl shadow-sm border min-h-[300px]" ondrop="drop(event, '貸方')" ondragover="allowDrop(event)">
+                        <h2 class="font-bold text-red-600 border-b mb-4 pb-2 italic text-lg text-right">Credit 貸方</h2><ul id="credit-list" class="space-y-4 font-bold"></ul>
                     </div>
                 </div>
-
-                <div id="balance-check" class="bg-white p-3 rounded-lg shadow border flex items-center justify-between no-export transition-all border-l-8 border-slate-300">
-                    <div class="flex gap-6 text-sm font-bold text-slate-500">
-                        <div>借：<span id="sum-debit" class="text-blue-600 font-mono text-lg">0</span></div>
-                        <div>貸：<span id="sum-credit" class="text-red-600 font-mono text-lg">0</span></div>
+                <div id="balance-check" class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between no-export border-l-8 border-slate-300">
+                    <div class="flex gap-8 text-sm font-bold text-slate-500">
+                        <div>借：<span id="sum-debit" class="text-blue-600 font-mono text-xl">0</span></div>
+                        <div>貸：<span id="sum-credit" class="text-red-600 font-mono text-xl">0</span></div>
                     </div>
-                    <div id="balance-status" class="font-bold text-slate-400 text-sm">差額：0</div>
+                    <div id="balance-status" class="font-bold text-slate-400">差額：0</div>
                 </div>
-
-                <div class="bg-white p-4 rounded-lg shadow border no-export">
-                    <h2 class="text-xs font-bold text-indigo-500 mb-2">📝 自由計算過程 / 備註</h2>
-                    <textarea id="manual-calc" rows="2" class="w-full p-2 text-sm border rounded outline-none font-mono focus:border-indigo-400" placeholder="輸入內容並換行..."></textarea>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border no-export">
+                    <textarea id="manual-calc" rows="2" class="w-full p-2 text-sm border-none outline-none font-mono font-bold" placeholder="📝 輸入大批計算過程，生成後點擊 ＋ 可隨時補充..."></textarea>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-col items-center gap-4 my-10 no-export">
-            <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="show-calc" class="form-checkbox h-4 w-4 text-indigo-600 rounded">
-                <span class="ml-2 text-sm text-slate-600 font-bold">列印時包含公式計算過程</span>
-            </label>
+            <label class="inline-flex items-center cursor-pointer font-bold"><input type="checkbox" id="show-calc" class="form-checkbox h-4 w-4 text-indigo-600 rounded" checked><span class="ml-2 text-sm text-slate-600">包含詳細計算公式</span></label>
             <div class="flex gap-4">
-                <button onclick="generateJournal()" class="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold shadow-xl active:scale-95 transition-all">＋ 新增分錄</button>
-                <button onclick="downloadPDF()" class="bg-emerald-600 text-white px-8 py-4 rounded-full font-bold shadow-xl">📥 下載 PDF</button>
-                <button onclick="clearAll()" class="bg-slate-400 text-white px-8 py-4 rounded-full font-bold shadow active:scale-95">一鍵清除</button>
+                <button onclick="generateJournal()" class="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold shadow-lg">＋ 生成分錄紀錄</button>
+                <button onclick="downloadPDF()" class="bg-emerald-600 text-white px-8 py-4 rounded-full font-bold shadow-lg">📥 下載 PDF</button>
+                <button onclick="clearAll()" class="bg-slate-300 text-slate-700 px-8 py-4 rounded-full font-bold">重置</button>
             </div>
         </div>
-
-        <div id="result-area" class="hidden max-w-4xl mx-auto mb-20">
-            <div id="journal-history" class="space-y-6"></div>
-        </div>
+        <div id="result-area" class="hidden max-w-4xl mx-auto mb-20"><div id="journal-history" class="space-y-8"></div></div>
     </div>
 
     <script>
         const formatter = new Intl.NumberFormat('en-US');
-        let clipboardData = null, clipboardFormula = null;
-        let currentJournalBtn = null, dateMode = 'md';
+        let clipboardData = null, clipboardFormula = null, currentJournalBtn = null, dateMode = 'md';
 
-        // 初始化日期選單
-        const mSel = document.getElementById('month'), dSel = document.getElementById('day');
-        for (let i = 1; i <= 12; i++) mSel.innerHTML += `<option value="${i}">${i}</option>`;
-        for (let i = 1; i <= 31; i++) dSel.innerHTML += `<option value="${i}">${i}</option>`;
-        new Sortable(document.getElementById('journal-history'), { animation: 150, ghostClass: 'sortable-ghost' });
-
-        // --- 搜尋功能 (修復版) ---
-        function filterSubjects() {
-            const query = document.getElementById('subject-search').value.toLowerCase();
-            const categories = document.querySelectorAll('.cat-section');
-            categories.forEach(cat => {
-                let hasMatch = false;
-                const items = cat.querySelectorAll('.subject-item');
-                items.forEach(item => {
-                    const matched = item.innerText.toLowerCase().includes(query);
-                    item.style.display = matched ? 'block' : 'none';
-                    if (matched) hasMatch = true;
-                });
-                if (query !== "") cat.open = hasMatch;
-            });
-        }
-
-        // --- 科目管理 (恢復版) ---
-        function addSubjectToLibrary() {
-            const name = document.getElementById('custom-subject-name').value.trim();
-            const type = document.getElementById('custom-subject-type').value;
-            if (!name) return alert("請輸入科目名稱");
-            const container = document.querySelector(`#cat-${type} .list-container`);
-            const div = document.createElement('div');
-            div.className = "subject-item"; div.draggable = true; div.innerText = name;
-            div.ondragstart = drag; container.appendChild(div);
-            document.getElementById('custom-subject-name').value = "";
-        }
-
-        function createTemporarySubject() {
-            const name = document.getElementById('custom-subject-name').value.trim();
-            if (!name) return alert("請輸入科目名稱");
-            document.getElementById('temp-subject-container').classList.remove('hidden');
-            const div = document.createElement('div');
-            div.className = "subject-item border-indigo-200 bg-indigo-50";
-            div.draggable = true; div.innerText = name; div.ondragstart = drag;
-            document.getElementById('temp-pool').appendChild(div);
-            document.getElementById('custom-subject-name').value = "";
-        }
-
-        // --- 平衡檢查 ---
-        function updateBalance() {
-            const getSum = (id) => {
-                let total = 0;
-                document.querySelectorAll(`#${id} .amount-input`).forEach(i => {
-                    const n = parseFloat(i.value.replace(/,/g, ''));
-                    if (!isNaN(n)) total += n;
-                });
-                return total;
-            };
-            const dSum = getSum('debit-list'), cSum = getSum('credit-list'), diff = Math.abs(dSum - cSum);
-            document.getElementById('sum-debit').innerText = formatter.format(dSum);
-            document.getElementById('sum-credit').innerText = formatter.format(cSum);
-            const status = document.getElementById('balance-status'), bar = document.getElementById('balance-check');
-            if (diff === 0 && dSum !== 0) {
-                status.innerText = "已平衡 ✅"; status.className = "text-emerald-600 font-bold"; bar.style.borderLeftColor = "#10b981";
-            } else {
-                status.innerText = `差額：${formatter.format(diff)}`; status.className = "text-red-500 font-bold";
-                bar.style.borderLeftColor = (diff === 0) ? "#cbd5e1" : "#ef4444";
-            }
-        }
-
-        // --- 彈窗備註 ---
-        function openModal(btn) { currentJournalBtn = btn; document.getElementById('custom-modal').classList.remove('hidden'); document.getElementById('modal-input').value = ""; document.getElementById('modal-input').focus(); }
-        function closeModal() { document.getElementById('custom-modal').classList.add('hidden'); }
-        function confirmModal() {
-            const txt = document.getElementById('modal-input').value.trim();
-            if (txt && currentJournalBtn) {
-                const con = currentJournalBtn.parentElement.querySelector('.calc-container');
-                const div = document.createElement('div');
-                div.className = "calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100";
-                div.innerHTML = `<span>${txt}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button>`;
-                con.appendChild(div); closeModal();
-            }
-        }
-
-        function toggleDateMode() {
-            dateMode = (dateMode === 'md') ? 'quarter' : 'md';
-            document.getElementById('mode-md').classList.toggle('hidden');
-            document.getElementById('mode-quarter').classList.toggle('hidden');
-        }
-
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.innerText); }
-        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
-        function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
-
-        function drop(ev, side) {
-            ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
-            const data = ev.dataTransfer.getData("text"), list = document.getElementById(side === '借方' ? 'debit-list' : 'credit-list');
-            const li = document.createElement("li");
-            li.className = "flex items-center justify-between bg-slate-50 border p-3 rounded-xl shadow-sm";
-            li.innerHTML = `<span class="subject-name font-bold text-slate-700 text-sm font-bold">${data}</span>
-                <div class="flex items-center gap-2">
-                    <input type="text" oninput="updateBalance()" onkeydown="handleAmountLogic(this, event)" ondblclick="handleAmountLogic(this, event)" onclick="handleAmountLogic(this, event)"
-                        class="amount-input w-44 border-b border-slate-300 outline-none text-right px-1 bg-transparent font-mono text-lg cursor-pointer" placeholder="金額/公式">
-                    <button onclick="this.parentElement.parentElement.remove(); updateBalance();" class="text-slate-300 hover:text-red-500 ml-2 no-export">✕</button>
-                </div>`;
-            list.appendChild(li);
-        }
+        const mS = document.getElementById('month'), dS = document.getElementById('day');
+        for (let i = 1; i <= 12; i++) mS.innerHTML += `<option value="${i}">${i}</option>`;
+        for (let i = 1; i <= 31; i++) dS.innerHTML += `<option value="${i}">${i}</option>`;
+        new Sortable(document.getElementById('journal-history'), { animation: 150 });
 
         function handleAmountLogic(input, event) {
             if (event.type === 'dblclick' && input.value) {
                 clipboardData = input.value; clipboardFormula = input.dataset.formula || null;
-                input.classList.add('bg-blue-50'); setTimeout(() => input.classList.remove('bg-blue-50'), 400);
+                input.classList.add('bg-blue-100'); setTimeout(() => input.classList.remove('bg-blue-100'), 400);
             }
-            if (event.type === 'click' && clipboardData && !input.value) { input.value = clipboardData; if (clipboardFormula) input.dataset.formula = clipboardFormula; clipboardData = null; clipboardFormula = null; updateBalance(); }
+            if (event.type === 'click' && clipboardData && !input.value) {
+                input.value = clipboardData; if(clipboardFormula) input.dataset.formula = clipboardFormula;
+                clipboardData = null; clipboardFormula = null; updateBalance();
+            }
             if (event.type === 'keydown' && event.key === 'Enter') {
                 let v = input.value.trim();
                 if (v.startsWith('=')) {
@@ -325,78 +163,125 @@
             }
         }
 
-        function generateJournal() {
-            const y = document.getElementById('year').value;
-            let dateStr = "無日期";
-            if (dateMode === 'md') {
-                const m = document.getElementById('month').value, d = document.getElementById('day').value;
-                if (y || m || d) dateStr = `${y ? y + '年' : ''}${m ? m + '月' : ''}${d ? d + '日' : ''}`;
-            } else {
-                const q = document.getElementById('quarter').value;
-                if (y || q) dateStr = `${y ? y + '年' : ''}${q ? '第' + q + '季' : ''}`;
-            }
+        function filterSubjects() {
+            const query = document.getElementById('subject-search').value.toLowerCase();
+            document.querySelectorAll('.cat-section').forEach(cat => {
+                let matched = false;
+                cat.querySelectorAll('.subject-item').forEach(item => {
+                    const isMatch = item.innerText.toLowerCase().includes(query);
+                    item.style.display = isMatch ? 'block' : 'none';
+                    if (isMatch) matched = true;
+                });
+                if (query !== "") cat.open = matched;
+            });
+        }
 
-            const showCalc = document.getElementById('show-calc').checked;
-            const manualLines = document.getElementById('manual-calc').value.trim().split('\n').filter(l => l.trim());
-            const debitItems = document.querySelectorAll('#debit-list li'), creditItems = document.querySelectorAll('#credit-list li');
-            if (debitItems.length === 0 && creditItems.length === 0) return;
+        function generateJournal() {
+            const y = document.getElementById('year').value, m = document.getElementById('month').value, d = document.getElementById('day').value, q = document.getElementById('quarter').value;
+            const showCalc = document.getElementById('show-calc').checked, manualLines = document.getElementById('manual-calc').value.trim().split('\n').filter(l => l.trim());
+            const dItems = document.querySelectorAll('#debit-list li'), cItems = document.querySelectorAll('#credit-list li');
+            if (dItems.length === 0 && cItems.length === 0) return;
 
             document.getElementById('result-area').classList.remove('hidden');
-            const block = document.createElement('div');
-            block.className = "journal-block bg-white p-8 rounded-3xl shadow-sm border-l-8 border-indigo-500 relative journal-font mb-6";
+            const block = document.createElement('div'); block.className = "journal-block bg-white p-8 rounded-3xl shadow-sm border-l-8 border-indigo-500 relative mb-8 font-bold";
             
-            let html = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 text-slate-300 hover:text-red-500 font-bold no-export">✕</button>`;
-            html += `<div class="text-indigo-900 font-bold mb-4 border-b pb-2 text-lg italic underline underline-offset-8 decoration-indigo-100">${dateStr}</div>`;
-
-            const formatF = (str) => str.replace(/\d{4,}/g, n => formatter.format(n));
-            let calcMap = new Map();
-            const process = (items, side) => {
-                items.forEach(item => {
-                    const name = item.querySelector('.subject-name').innerText;
-                    const input = item.querySelector('.amount-input'), val = input.value || "0";
-                    if (showCalc && input.dataset.formula) {
-                        const fk = `${formatF(input.dataset.formula)} = ${val}`;
-                        if (!calcMap.has(fk)) calcMap.set(fk, []); calcMap.get(fk).push(name);
-                    }
-                    html += `<div class="flex justify-between w-full py-1 text-lg text-slate-800">
-                        <div class="${side === 'credit' ? 'pl-12' : ''} w-1/2">${side === 'credit' ? '　' : ''}${name}</div>
-                        <div class="w-1/4 text-right ${side === 'debit' ? 'pr-8 font-medium' : ''}">${side === 'debit' ? val : ''}</div>
-                        <div class="w-1/4 text-right ${side === 'credit' ? 'font-medium' : ''}">${side === 'credit' ? val : ''}</div></div>`;
+            let html = `<button onclick="this.parentElement.remove()" class="absolute top-6 right-6 text-slate-200 hover:text-red-500 no-export">✕</button>`;
+            html += `<div class="mb-4 border-b pb-2 no-export flex gap-2 items-center text-indigo-900 font-bold">
+                <select class="bg-transparent outline-none">${[...document.getElementById('year').options].map(o=>`<option value="${o.value}" ${o.value==y?'selected':''}>${o.text}</option>`).join('')}</select>
+                ${dateMode=='md' ? `<select class="bg-transparent outline-none">${[...document.getElementById('month').options].map(o=>`<option value="${o.value}" ${o.value==m?'selected':''}>${o.text}</option>`).join('')}</select>月<select class="bg-transparent outline-none">${[...document.getElementById('day').options].map(o=>`<option value="${o.value}" ${o.value==d?'selected':''}>${o.text}</option>`).join('')}</select>日` : `<select class="bg-transparent outline-none">${[...document.getElementById('quarter').options].map(o=>`<option value="${o.value}" ${o.value==q?'selected':''}>${o.text}</option>`).join('')}</select>季`}</div>`;
+            const dateStr = dateMode === 'md' ? `${y}年${m}月${d}日` : `${y}年第${q}季`;
+            html += `<div class="hidden print-date text-indigo-900 font-bold mb-4 border-b pb-2 text-lg underline underline-offset-8 italic">${dateStr}</div><ul>`;
+            
+            const process = (items, side) => items.forEach(item => {
+                const name = item.querySelector('.subject-name').innerText, val = item.querySelector('.amount-input').value || "0";
+                html += `<li class="flex justify-between w-full py-1 text-lg group font-bold"><div class="${side==='貸方'?'pl-12':''} w-1/2 cursor-pointer" onclick="this.innerText=prompt('修改科目',this.innerText)||this.innerText">${side==='貸方'?'　':''}${name}</div><div class="w-1/4 text-right cursor-pointer" onclick="this.innerText=formatter.format(prompt('金額',this.innerText).replace(/,/g,''))">${side==='借方'?val:''}</div><div class="w-1/4 text-right cursor-pointer" onclick="this.innerText=formatter.format(prompt('金額',this.innerText).replace(/,/g,''))">${side==='貸方'?val:''}</div><button onclick="this.parentElement.remove()" class="no-export text-xs text-red-100 opacity-0 group-hover:opacity-100 ml-2">✕</button></li>`;
+            });
+            process(dItems, '借方'); process(cItems, '貸方');
+            html += `</ul><div class="flex gap-2 mt-2 no-export"><button onclick="addManualItem('借方', this)" class="text-[10px] text-blue-400 border border-blue-50 px-2 py-0.5 rounded">＋借方</button><button onclick="addManualItem('貸方', this)" class="text-[10px] text-red-400 border border-red-100 px-2 py-0.5 rounded">＋貸方</button></div>`;
+            
+            // 💡 補上標題與燈泡圖案
+            html += `<div class="mt-6 pt-2 border-t border-dashed border-slate-200">
+                        <div class="text-sm text-slate-700 font-bold mb-2 flex items-center gap-1">💡 計算過程：</div>
+                        <div class="calc-container space-y-1">`;
+            manualLines.forEach(l => { 
+                html += `<div class="calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100"><span>${l}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export">✕</button></div>`; 
+            });
+            if (showCalc) {
+                document.querySelectorAll('#debit-list li, #credit-list li').forEach(i => {
+                    const inp = i.querySelector('.amount-input');
+                    if (inp.dataset.formula) html += `<div class="calc-item py-2 px-3 rounded-xl bg-indigo-50 flex justify-between items-center group font-bold text-indigo-700 border border-indigo-100"><span>${i.querySelector('.subject-name').innerText}: ${inp.dataset.formula.replace(/\d{4,}/g, n=>formatter.format(n))} = ${inp.value}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export">✕</button></div>`;
                 });
-            };
-            process(debitItems, 'debit'); process(creditItems, 'credit');
-
-            html += `<div class="mt-6 pt-2 border-t border-dashed border-slate-200"><div class="calc-container space-y-1">`;
-            manualLines.forEach(l => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100"><span>${l}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
-            calcMap.forEach((ns, f) => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-indigo-50 flex justify-between items-center group font-bold text-indigo-700 border border-indigo-100"><span>${ns.join('、')}: ${f}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
-            html += `</div><button onclick="openModal(this)" class="mt-4 text-xs text-indigo-400 border-2 border-indigo-50 border-dashed w-full py-2 rounded-xl hover:bg-indigo-50 no-export transition-all font-bold">＋ 新增備註內容</button></div>`;
-
+            }
+            html += `</div><button onclick="openModal(this)" class="mt-4 text-xs text-indigo-400 border-2 border-indigo-50 border-dashed w-full py-2 rounded-xl hover:bg-indigo-50 no-export font-bold">＋ 增加備註內容</button></div>`;
+            
             block.innerHTML = html; document.getElementById('journal-history').appendChild(block);
-            new Sortable(block.querySelector('.calc-container'), { animation: 150, ghostClass: 'sortable-ghost' });
+            new Sortable(block.querySelector('.calc-container'), { animation: 150 });
             document.getElementById('debit-list').innerHTML = ''; document.getElementById('credit-list').innerHTML = ''; document.getElementById('manual-calc').value = ''; updateBalance();
         }
 
+        // --- 彈窗與輔助函數 ---
+        function openModal(btn) { currentJournalBtn = btn; document.getElementById('custom-modal').classList.remove('hidden'); document.getElementById('modal-input').focus(); }
+        function closeModal() { document.getElementById('custom-modal').classList.add('hidden'); }
+        function confirmModal() {
+            const txt = document.getElementById('modal-input').value.trim();
+            if (txt && currentJournalBtn) {
+                const con = currentJournalBtn.parentElement.querySelector('.calc-container'), div = document.createElement('div');
+                div.className = "calc-item py-2 px-3 mb-1 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100";
+                div.innerHTML = `<span>${txt}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export">✕</button>`;
+                con.appendChild(div); closeModal();
+            }
+        }
+        function addManualItem(side, btn) {
+            const name = prompt(`科目：`), amount = prompt(`金額：`);
+            if (name && amount) {
+                const li = document.createElement('li'); li.className = "flex justify-between w-full py-1 text-lg group font-bold";
+                const fmt = formatter.format(amount.replace(/,/g, ''));
+                li.innerHTML = `<div class="${side==='貸方'?'pl-12':''} w-1/2 cursor-pointer" onclick="this.innerText=prompt('修改科目',this.innerText)||this.innerText">${side==='貸方'?'　':''}${name}</div><div class="w-1/4 text-right cursor-pointer" onclick="this.innerText=formatter.format(prompt('金額',this.innerText).replace(/,/g,''))">${side==='借方'?fmt:''}</div><div class="w-1/4 text-right cursor-pointer" onclick="this.innerText=formatter.format(prompt('金額',this.innerText).replace(/,/g,''))">${side==='貸方'?fmt:''}</div><button onclick="this.parentElement.remove()" class="no-export text-xs text-red-100 opacity-0 group-hover:opacity-100 ml-2">✕</button>`;
+                btn.parentElement.parentElement.querySelector('ul').appendChild(li);
+            }
+        }
+        function addSubjectToLibrary() {
+            const name = document.getElementById('custom-subject-name').value.trim(), type = document.getElementById('custom-subject-type').value;
+            if (name) { const div = document.createElement('div'); div.className = "subject-item"; div.draggable = true; div.innerText = name; div.ondragstart = drag; document.querySelector(`#cat-${type} .list-container`).appendChild(div); document.getElementById('custom-subject-name').value = ""; }
+        }
+        function createTemporarySubject() {
+            const name = document.getElementById('custom-subject-name').value.trim();
+            if (name) { document.getElementById('temp-subject-container').classList.remove('hidden'); const div = document.createElement('div'); div.className = "subject-item bg-indigo-50 border border-indigo-100 px-2 py-1 rounded font-bold"; div.draggable = true; div.innerText = name; div.ondragstart = drag; document.getElementById('temp-pool').appendChild(div); document.getElementById('custom-subject-name').value = ""; }
+        }
+        function updateBalance() {
+            const getS = (id) => { let t = 0; document.querySelectorAll(`#${id} .amount-input`).forEach(i => { const n = parseFloat(i.value.replace(/,/g, '')); if (!isNaN(n)) t += n; }); return t; };
+            const d = getS('debit-list'), c = getS('credit-list'), diff = Math.abs(d - c);
+            document.getElementById('sum-debit').innerText = formatter.format(d); document.getElementById('sum-credit').innerText = formatter.format(c);
+            const status = document.getElementById('balance-status'), bar = document.getElementById('balance-check');
+            if (diff === 0 && d !== 0) { status.innerText = "已平衡 ✅"; status.className = "text-emerald-600 font-bold"; bar.style.borderLeftColor = "#10b981"; }
+            else { status.innerText = `差額：${formatter.format(diff)}`; status.className = "text-red-500 font-bold"; bar.style.borderLeftColor = (diff === 0) ? "#cbd5e1" : "#ef4444"; }
+        }
+        function drag(e) { e.dataTransfer.setData("text", e.target.innerText); }
+        function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+        function drop(ev, side) {
+            ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
+            const data = ev.dataTransfer.getData("text"), list = document.getElementById(side === '借方' ? 'debit-list' : 'credit-list'), li = document.createElement("li");
+            li.className = "flex items-center justify-between bg-slate-50 border p-3 rounded-xl shadow-sm";
+            li.innerHTML = `<span class="subject-name font-bold text-slate-700 text-sm font-bold">${data}</span>
+                <div class="flex items-center gap-2"><input type="text" oninput="updateBalance()" onkeydown="handleAmountLogic(this, event)" ondblclick="handleAmountLogic(this, event)" onclick="handleAmountLogic(this, event)"
+                class="amount-input w-44 border-b border-slate-300 outline-none text-right px-1 bg-transparent font-mono text-lg cursor-pointer" placeholder="金額/公式"><button onclick="this.parentElement.parentElement.remove(); updateBalance();" class="text-slate-300 hover:text-red-500 ml-2 no-export font-bold">✕</button></div>`;
+            list.appendChild(li);
+        }
         async function downloadPDF() {
-            document.querySelectorAll('.calc-item').forEach(el => el.classList.remove('bg-slate-50', 'bg-indigo-50', 'border'));
-            const hide = [document.getElementById('custom-modal'), document.getElementById('sidebar-container'), document.querySelector('header'), ...document.querySelectorAll('.no-export'), ...document.querySelectorAll('button')];
+            document.querySelectorAll('.journal-block').forEach(b => { b.querySelector('.no-export').style.display = 'none'; b.querySelector('.print-date').classList.remove('hidden'); b.querySelectorAll('.flex.gap-2.mt-2.no-export').forEach(e=>e.style.display='none'); });
+            const hide = [document.getElementById('custom-modal'), document.getElementById('sidebar-container'), document.querySelector('header'), ...document.querySelectorAll('.no-export'), ...document.querySelectorAll('button'), ...document.querySelectorAll('select')];
             hide.forEach(el => { if(el) el.style.display = 'none'; });
             const canvas = await html2canvas(document.getElementById('export-content'), { scale: 2 });
             const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, doc.internal.pageSize.getWidth(), (canvas.height * doc.internal.pageSize.getWidth()) / canvas.width);
+            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             doc.save("解題筆記.pdf"); location.reload();
         }
-
         function clearAll() { if(confirm("清除？")) location.reload(); }
-
         document.getElementById('problem-area').addEventListener('paste', e => {
             const item = Array.from(e.clipboardData.items).find(i => i.type.includes('image'));
             if (item) {
                 const reader = new FileReader();
-                reader.onload = ev => { 
-                    document.getElementById('image-preview').innerHTML = `<img src="${ev.target.result}" class="max-h-[500px] rounded-2xl shadow-lg border">`;
-                    document.getElementById('image-placeholder').classList.add('hidden');
-                    document.getElementById('clear-img').classList.remove('hidden');
-                };
+                reader.onload = ev => { document.getElementById('image-preview').innerHTML = `<img src="${ev.target.result}" class="max-h-[500px] rounded-2xl shadow-lg border">`; document.getElementById('image-placeholder').classList.add('hidden'); document.getElementById('clear-img').classList.remove('hidden'); };
                 reader.readAsDataURL(item.getAsFile());
             }
         });
