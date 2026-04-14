@@ -185,7 +185,7 @@
 
         <div class="flex flex-col items-center gap-4 my-10 no-export">
             <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="show-calc" class="form-checkbox h-4 w-4 text-indigo-600 rounded">
+                <input type="checkbox" id="show-calc" class="form-checkbox h-4 w-4 text-indigo-600 rounded" checked>
                 <span class="ml-2 text-sm text-slate-600 font-bold">列印時包含公式計算過程</span>
             </label>
             <div class="flex gap-4">
@@ -212,20 +212,34 @@
         new Sortable(document.getElementById('journal-history'), { animation: 150, ghostClass: 'sortable-ghost' });
 
         // --- 搜尋功能 (修復版) ---
-        function filterSubjects() {
-            const query = document.getElementById('subject-search').value.toLowerCase();
-            const categories = document.querySelectorAll('.cat-section');
-            categories.forEach(cat => {
-                let hasMatch = false;
-                const items = cat.querySelectorAll('.subject-item');
-                items.forEach(item => {
-                    const matched = item.innerText.toLowerCase().includes(query);
-                    item.style.display = matched ? 'block' : 'none';
-                    if (matched) hasMatch = true;
-                });
-                if (query !== "") cat.open = hasMatch;
-            });
+// --- 科目搜尋功能 (強化版：支援自動展開與即時過濾) ---
+function filterSubjects() {
+    const query = document.getElementById('subject-search').value.toLowerCase().trim();
+    const sections = document.querySelectorAll('#library-lists .cat-section');
+
+    sections.forEach(section => {
+        let hasVisibleItem = false;
+        const items = section.querySelectorAll('.list-container .subject-item');
+
+        items.forEach(item => {
+            const matched = query === "" || item.innerText.toLowerCase().includes(query);
+            item.style.display = matched ? "" : "none";
+            if (matched) hasVisibleItem = true;
+        });
+
+        if (query === "") {
+            section.removeAttribute('open');
+            if (section.id === 'cat-assets') section.setAttribute('open', '');
+            section.style.opacity = "1";
+            section.style.pointerEvents = "";
+        } else {
+            section.removeAttribute('open');
+            if (hasVisibleItem) section.setAttribute('open', '');
+            section.style.opacity = hasVisibleItem ? "1" : "0.3";
+            section.style.pointerEvents = hasVisibleItem ? "" : "none";
         }
+    });
+}
 
         // --- 科目管理 (恢復版) ---
         function addSubjectToLibrary() {
@@ -379,14 +393,46 @@
         }
 
         async function downloadPDF() {
-            document.querySelectorAll('.calc-item').forEach(el => el.classList.remove('bg-slate-50', 'bg-indigo-50', 'border'));
-            const hide = [document.getElementById('custom-modal'), document.getElementById('sidebar-container'), document.querySelector('header'), ...document.querySelectorAll('.no-export'), ...document.querySelectorAll('button')];
-            hide.forEach(el => { if(el) el.style.display = 'none'; });
-            const canvas = await html2canvas(document.getElementById('export-content'), { scale: 2 });
-            const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, doc.internal.pageSize.getWidth(), (canvas.height * doc.internal.pageSize.getWidth()) / canvas.width);
-            doc.save("解題筆記.pdf"); location.reload();
-        }
+    // 1. 取得需要隱藏的元素
+    const titleText = document.querySelector('#problem-area h2'); // 題目區字樣
+    const zones = document.querySelectorAll('.drop-zone'); // 中間的借貸方編輯區
+    const sidebar = document.getElementById('sidebar-container');
+    const header = document.querySelector('header');
+    const allButtons = document.querySelectorAll('button');
+    const noExports = document.querySelectorAll('.no-export');
+    const balanceCheck = document.getElementById('balance-check');
+
+    // 2. 執行隱藏動作
+    if (titleText) titleText.style.visibility = 'hidden'; // 隱藏字樣但保留空間
+    zones.forEach(z => z.style.display = 'none');
+    if (sidebar) sidebar.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (balanceCheck) balanceCheck.style.display = 'none';
+    allButtons.forEach(b => b.style.display = 'none');
+    noExports.forEach(el => el.style.display = 'none');
+
+    // 3. 處理生成的紀錄（顯示列印專用日期）
+    document.querySelectorAll('.journal-block').forEach(b => {
+        const printDate = b.querySelector('.print-date');
+        if (printDate) printDate.classList.remove('hidden');
+    });
+
+    // 4. 開始截圖
+    const canvas = await html2canvas(document.getElementById('export-content'), { 
+        scale: 2,
+        useCORS: true 
+    });
+    
+    const doc = new jspdf.jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+    doc.save("會計錯題本.pdf");
+
+    // 5. 恢復網頁原狀（重要！不然下載完網頁會變空白）
+    location.reload(); 
+}
 
         function clearAll() { if(confirm("清除？")) location.reload(); }
 
