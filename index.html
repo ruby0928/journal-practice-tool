@@ -208,8 +208,7 @@
                             <option value="assets">1. 資產類</option>
                             <option value="liabilities">2. 負債類</option>
                             <option value="equity">3. 權益類</option>
-                            <option value="revenue">4. 收益類</option>
-                            <option value="expenses">5. 費損類</option>
+                            <option value="income">4. 損益類</option>
                         </select>
                         <div class="flex gap-2">
                             <button onclick="addSubjectToLibrary()"
@@ -240,6 +239,14 @@
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">存貨</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">機器設備</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">累計折舊</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">透過損益按公允價值衡量之金融資產 (FVTPL)</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">透過其他綜合損益按公允價值衡量之金融資產 (FVOCI)</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">按攤銷後成本衡量之金融資產 (AC)</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">合約資產</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">使用權資產</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">累計減損</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">遞延所得稅資產</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">採用權益法之投資</div>
                             </div>
                         </details>
                         <details class="group cat-section" id="cat-liabilities">
@@ -251,38 +258,42 @@
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">應付票據</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">短期借款</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">應付公司債</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應付公司債溢價</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">應付公司債折價</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">合約負債</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">租賃負債</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">遞延所得稅負債</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">負債準備</div>
                             </div>
                         </details>
                         <details class="group cat-section" id="cat-equity">
                             <summary
                                 class="flex justify-between items-center p-2 bg-purple-50 text-purple-800 rounded cursor-pointer font-bold">
                                 3. 權益類 <span>▼</span></summary>
-                            <div
-                                class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
+                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container">
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">普通股股本</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">保留盈餘</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">資本公積</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">重估增值</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">其他綜合損益－FVOCI金融資產未實現損益</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">庫藏股票</div>
                             </div>
                         </details>
-                        <details class="group cat-section" id="cat-revenue">
+                        <details class="group cat-section" id="cat-income">
                             <summary
-                                class="flex justify-between items-center p-2 bg-green-50 text-green-800 rounded cursor-pointer font-bold">
-                                4. 收益類 <span>▼</span></summary>
-                            <div
-                                class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
+                                class="flex justify-between items-center p-2 bg-emerald-50 text-emerald-800 rounded cursor-pointer font-bold">
+                                4. 損益類 <span>▼</span></summary>
+                            <div class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container">
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨收入</div>
-                                <div class="subject-item" draggable="true" ondragstart="drag(event)">債務整理利益</div>
-                            </div>
-                        </details>
-                        <details class="group cat-section" id="cat-expenses">
-                            <summary
-                                class="flex justify-between items-center p-2 bg-orange-50 text-orange-800 rounded cursor-pointer font-bold">
-                                5. 費損類 <span>▼</span></summary>
-                            <div
-                                class="p-2 flex flex-wrap gap-2 bg-slate-50 border-x border-b list-container font-bold">
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">銷貨成本</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">折舊費用</div>
                                 <div class="subject-item" draggable="true" ondragstart="drag(event)">薪資支出</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">債務整理利益</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">金融資產評價損益</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">減損損失</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">減損損失迴轉利益</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">利息費用</div>
+                                <div class="subject-item" draggable="true" ondragstart="drag(event)">處分資產損益</div>
                             </div>
                         </details>
                     </div>
@@ -387,15 +398,19 @@
             });
         }
 
-        // --- 科目管理 (恢復版) ---
+        // --- 科目管理 ---
         function addSubjectToLibrary() {
             const name = document.getElementById('custom-subject-name').value.trim();
             const type = document.getElementById('custom-subject-type').value;
             if (!name) return alert("請輸入科目名稱");
             const container = document.querySelector(`#cat-${type} .list-container`);
             const div = document.createElement('div');
-            div.className = "subject-item"; div.draggable = true; div.innerText = name;
-            div.ondragstart = drag; container.appendChild(div);
+            div.className = "subject-item relative group/item pr-5";
+            div.draggable = true;
+            div.dataset.name = name;
+            div.ondragstart = drag;
+            div.innerHTML = `<span class="pointer-events-none">${name}</span><button onclick="event.stopPropagation();this.parentElement.remove()" class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 text-xs leading-none">✕</button>`;
+            container.appendChild(div);
             document.getElementById('custom-subject-name').value = "";
         }
 
@@ -452,7 +467,7 @@
             document.getElementById('mode-quarter').classList.toggle('hidden');
         }
 
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.innerText); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.dataset.name || ev.target.textContent.trim()); }
         function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
         function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
 
@@ -461,7 +476,7 @@
             const data = ev.dataTransfer.getData("text"), list = document.getElementById(side === '借方' ? 'debit-list' : 'credit-list');
             const li = document.createElement("li");
             li.className = "flex items-center justify-between bg-slate-50 border p-3 rounded-xl shadow-sm";
-            li.innerHTML = `<span class="subject-name font-bold text-slate-700 text-sm font-bold">${data}</span>
+            li.innerHTML = `<span class="subject-name font-bold text-slate-700 text-sm cursor-text rounded px-1 -mx-1 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-200" contenteditable="true" spellcheck="false" title="點擊可修改科目名稱">${data}</span>
                 <div class="flex items-center gap-2">
                     <input type="text" oninput="updateBalance()" onkeydown="handleAmountLogic(this, event)" ondblclick="handleAmountLogic(this, event)" onclick="handleAmountLogic(this, event)"
                         class="amount-input w-44 border-b border-slate-300 outline-none text-right px-1 bg-transparent font-mono text-lg cursor-pointer" placeholder="金額/公式">
