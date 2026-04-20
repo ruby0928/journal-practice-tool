@@ -368,7 +368,7 @@
                 const items = section.querySelectorAll('.list-container .subject-item');
 
                 items.forEach(item => {
-                    const matched = query === "" || item.innerText.toLowerCase().includes(query);
+                    const matched = query === "" || item.textContent.toLowerCase().trim().includes(query);
                     item.style.display = matched ? "" : "none";
                     if (matched) hasVisibleItem = true;
                 });
