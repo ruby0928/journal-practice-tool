@@ -623,7 +623,7 @@
             location.reload();
         }
 
-        function clearAll() { if (confirm("清除？")) location.reload(); }
+        function clearAll() { if (confirm("清除所有內容？此操作無法復原。")) { localStorage.removeItem('journalState'); location.reload(); } }
 
         document.getElementById('problem-area').addEventListener('paste', e => {
             const item = Array.from(e.clipboardData.items).find(i => i.type.includes('image'));
@@ -633,10 +633,109 @@
                     document.getElementById('image-preview').innerHTML = `<img src="${ev.target.result}" class="max-h-[500px] rounded-2xl shadow-lg border">`;
                     document.getElementById('image-placeholder').classList.add('hidden');
                     document.getElementById('clear-img').classList.remove('hidden');
+                    scheduleSave();
                 };
                 reader.readAsDataURL(item.getAsFile());
             }
         });
+
+        document.getElementById('clear-img').addEventListener('click', () => {
+            document.getElementById('image-preview').innerHTML = '';
+            document.getElementById('image-placeholder').classList.remove('hidden');
+            document.getElementById('clear-img').classList.add('hidden');
+            scheduleSave();
+        });
+
+        // --- 暫存功能 ---
+        let saveTimer;
+        function scheduleSave() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(saveState, 600);
+        }
+
+        function saveState() {
+            const state = {
+                image: document.getElementById('image-preview').innerHTML,
+                dateMode,
+                year: document.getElementById('year').value,
+                month: document.getElementById('month').value,
+                day: document.getElementById('day').value,
+                quarter: document.getElementById('quarter').value,
+                debitHTML: document.getElementById('debit-list').innerHTML,
+                creditHTML: document.getElementById('credit-list').innerHTML,
+                manualCalc: document.getElementById('manual-calc').value,
+                journalHTML: document.getElementById('journal-history').innerHTML,
+                customSubjects: {}
+            };
+            ['assets', 'liabilities', 'equity', 'income'].forEach(cat => {
+                state.customSubjects[cat] = [];
+                document.querySelectorAll(`#cat-${cat} .list-container [data-name]`).forEach(el => {
+                    state.customSubjects[cat].push(el.dataset.name);
+                });
+            });
+            try {
+                localStorage.setItem('journalState', JSON.stringify(state));
+            } catch (e) {
+                try { state.image = ''; localStorage.setItem('journalState', JSON.stringify(state)); } catch (_) {}
+            }
+        }
+
+        function restoreState() {
+            let state;
+            try { state = JSON.parse(localStorage.getItem('journalState')); } catch (_) {}
+            if (!state) return;
+
+            if (state.image) {
+                document.getElementById('image-preview').innerHTML = state.image;
+                document.getElementById('image-placeholder').classList.add('hidden');
+                document.getElementById('clear-img').classList.remove('hidden');
+            }
+
+            if (state.dateMode === 'quarter') {
+                dateMode = 'quarter';
+                document.getElementById('mode-md').classList.add('hidden');
+                document.getElementById('mode-quarter').classList.remove('hidden');
+            }
+            ['year', 'month', 'day', 'quarter'].forEach(id => {
+                if (state[id]) document.getElementById(id).value = state[id];
+            });
+
+            if (state.debitHTML) document.getElementById('debit-list').innerHTML = state.debitHTML;
+            if (state.creditHTML) document.getElementById('credit-list').innerHTML = state.creditHTML;
+            if (state.debitHTML || state.creditHTML) updateBalance();
+
+            if (state.manualCalc) document.getElementById('manual-calc').value = state.manualCalc;
+
+            if (state.journalHTML) {
+                document.getElementById('journal-history').innerHTML = state.journalHTML;
+                document.getElementById('result-area').classList.remove('hidden');
+                document.querySelectorAll('#journal-history .calc-container').forEach(c => {
+                    new Sortable(c, { animation: 150, ghostClass: 'sortable-ghost' });
+                });
+            }
+
+            if (state.customSubjects) {
+                Object.entries(state.customSubjects).forEach(([cat, names]) => {
+                    const container = document.querySelector(`#cat-${cat} .list-container`);
+                    if (!container || !names.length) return;
+                    names.forEach(name => {
+                        const div = document.createElement('div');
+                        div.className = "subject-item relative group/item pr-5";
+                        div.draggable = true; div.dataset.name = name; div.ondragstart = drag;
+                        div.innerHTML = `<span class="pointer-events-none">${name}</span><button onclick="event.stopPropagation();this.parentElement.remove()" class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 text-xs leading-none">✕</button>`;
+                        container.appendChild(div);
+                    });
+                });
+            }
+        }
+
+        // 監聽所有 DOM 變動與輸入事件以觸發自動儲存
+        const _root = document.getElementById('export-content');
+        _root.addEventListener('input', scheduleSave);
+        _root.addEventListener('change', scheduleSave);
+        new MutationObserver(scheduleSave).observe(_root, { childList: true, subtree: true });
+
+        restoreState();
     </script>
 </body>
 
