@@ -119,32 +119,25 @@
         <header class="text-center mb-6 no-export">
             <h1 class="text-3xl font-bold text-slate-800">會計分錄練習工具</h1>
             <div
-                class="max-w-2xl mx-auto mb-8 bg-white/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-200 shadow-sm no-export">
-                <div class="flex flex-col md:flex-row items-center justify-around gap-4 text-sm text-slate-600">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">🧮</span>
-                        <div>
-                            <p class="font-bold text-slate-800">公式計算</p>
-                            <p class="text-[12px]">輸入 <code
-                                    class="bg-indigo-100 px-1 rounded text-indigo-700">＝算式</code> 後按 <span
-                                    class="font-bold">Enter</span></p>
+                class="max-w-xl mx-auto mb-8 bg-white/60 backdrop-blur-sm px-6 py-4 rounded-2xl border border-slate-200 shadow-sm no-export">
+                <div class="flex flex-col sm:flex-row items-start justify-center gap-x-10 gap-y-4 text-sm text-slate-600">
+                    <div class="flex flex-col items-center text-center gap-1 flex-1">
+                        <div class="flex items-center gap-1.5 font-bold text-slate-800">
+                            <span>🧮</span><span>金額計算</span>
                         </div>
-                        <div class="flex gap-1 ml-2">
-                            <span class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono">加 +</span>
-                            <span class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono">減 -</span>
-                            <span class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono">乘 *</span>
-                            <span class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono">除 /</span>
+                        <div class="text-xs text-slate-500 leading-relaxed">
+                            在金額欄輸入 <code class="bg-indigo-100 px-1 rounded text-indigo-700 font-mono">=算式</code> 後按 Enter<br>
+                            <span class="text-slate-400">支援 + − * / 四則運算</span>
                         </div>
                     </div>
-
-                    <div class="hidden md:block w-px h-8 bg-slate-200"></div>
-
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">📋</span>
-                        <div>
-                            <p class="font-bold text-slate-800">快速複製</p>
-                            <p class="text-[12px]"><span class="text-indigo-600 font-bold">雙擊</span>金額即可複製，點擊目標欄位即可貼上
-                            </p>
+                    <div class="hidden sm:block w-px self-stretch bg-slate-200"></div>
+                    <div class="flex flex-col items-center text-center gap-1 flex-1">
+                        <div class="flex items-center gap-1.5 font-bold text-slate-800">
+                            <span>📋</span><span>金額複製</span>
+                        </div>
+                        <div class="text-xs text-slate-500 leading-relaxed">
+                            <strong class="text-indigo-600">雙擊</strong>金額欄複製數值<br>
+                            <strong class="text-indigo-600">單擊</strong>另一個空白欄即可貼上
                         </div>
                     </div>
                 </div>
