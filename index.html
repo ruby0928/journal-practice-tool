@@ -65,45 +65,10 @@
             border-color: #6366f1;
         }
 
-        /* 彈窗動畫 */
-        @keyframes modalShow {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .modal-animate {
-            animation: modalShow 0.3s ease-out;
-        }
     </style>
 </head>
 
 <body class="bg-slate-100 p-4">
-
-    <div id="custom-modal"
-        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 modal-animate border border-indigo-50">
-            <div class="text-center mb-4">
-                <span class="text-3xl">📝</span>
-                <h3 class="text-lg font-bold text-slate-700 mt-2">新增計算備註</h3>
-            </div>
-            <textarea id="modal-input"
-                class="w-full p-3 border-2 border-indigo-50 rounded-2xl outline-none focus:border-indigo-300 transition-all text-sm mb-4"
-                rows="3" placeholder="例如：計算 X5 年折舊..."></textarea>
-            <div class="flex gap-3">
-                <button onclick="closeModal()"
-                    class="flex-1 py-3 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition">取消</button>
-                <button onclick="confirmModal()"
-                    class="flex-1 py-3 rounded-2xl bg-indigo-500 text-white font-bold shadow-lg hover:bg-indigo-600 transition">確定新增</button>
-            </div>
-        </div>
-    </div>
 
     <div id="export-content" class="max-w-7xl mx-auto">
         <div id="problem-area" tabindex="0"
@@ -353,7 +318,7 @@
     <script>
         const formatter = new Intl.NumberFormat('en-US');
         let clipboardData = null, clipboardFormula = null;
-        let currentJournalBtn = null, dateMode = 'md';
+        let dateMode = 'md';
 
         // 初始化日期選單
         const mSel = document.getElementById('month'), dSel = document.getElementById('day');
@@ -439,18 +404,31 @@
             }
         }
 
-        // --- 彈窗備註 ---
-        function openModal(btn) { currentJournalBtn = btn; document.getElementById('custom-modal').classList.remove('hidden'); document.getElementById('modal-input').value = ""; document.getElementById('modal-input').focus(); }
-        function closeModal() { document.getElementById('custom-modal').classList.add('hidden'); }
-        function confirmModal() {
-            const txt = document.getElementById('modal-input').value.trim();
-            if (txt && currentJournalBtn) {
-                const con = currentJournalBtn.parentElement.querySelector('.calc-container');
+        // --- 行內備註輸入 ---
+        function openInlineNote(btn) {
+            btn.classList.add('hidden');
+            const row = document.createElement('div');
+            row.className = 'inline-note-row flex gap-2 mt-4 no-export';
+            row.innerHTML = `<input type="text" placeholder="輸入備註內容..." class="flex-1 text-xs p-2 border-2 border-indigo-100 rounded-xl outline-none focus:border-indigo-300 transition-all font-bold text-slate-700" onkeydown="if(event.key==='Enter'){event.preventDefault();submitInlineNote(this.closest('.inline-note-row'))}else if(event.key==='Escape'){cancelInlineNote(this.closest('.inline-note-row'))}"><button onclick="submitInlineNote(this.closest('.inline-note-row'))" class="text-xs px-3 py-2 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition no-export">確認</button><button onclick="cancelInlineNote(this.closest('.inline-note-row'))" class="text-xs px-2 py-2 text-slate-400 hover:text-slate-600 no-export">取消</button>`;
+            btn.before(row);
+            row.querySelector('input').focus();
+        }
+        function submitInlineNote(row) {
+            const txt = row.querySelector('input').value.trim();
+            const btn = row.nextElementSibling;
+            if (txt) {
                 const div = document.createElement('div');
                 div.className = "calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100";
-                div.innerHTML = `<span>${txt}</span><button onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button>`;
-                con.appendChild(div); closeModal();
+                div.innerHTML = `<span ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false';scheduleSave()" title="雙擊可編輯">${txt}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button>`;
+                row.closest('.journal-block').querySelector('.calc-container').appendChild(div);
+                scheduleSave();
             }
+            row.remove();
+            btn.classList.remove('hidden');
+        }
+        function cancelInlineNote(row) {
+            row.nextElementSibling.classList.remove('hidden');
+            row.remove();
         }
 
         function toggleDateMode() {
@@ -606,9 +584,9 @@
 
             html += `<div class="mt-6 pt-2 border-t border-dashed border-slate-200"><div class="calc-container space-y-1">`;
             html += `<div class="text-sm text-slate-700 font-bold mb-2 flex items-center gap-1">💡 計算過程：<span class="journal-balance-indicator no-export ml-auto text-xs font-bold" style="transition:opacity 0.5s;opacity:0"></span></div>`;
-            manualLines.forEach(l => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100"><span>${l}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
-            calcMap.forEach((ns, f) => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-indigo-50 flex justify-between items-center group font-bold text-indigo-700 border border-indigo-100"><span>${ns.join('、')}: ${f}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
-            html += `</div><button onclick="openModal(this)" class="mt-4 text-xs text-indigo-400 border-2 border-indigo-50 border-dashed w-full py-2 rounded-xl hover:bg-indigo-50 no-export transition-all font-bold">＋ 新增備註內容</button></div>`;
+            manualLines.forEach(l => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-slate-50 flex justify-between items-center group font-bold text-slate-700 border border-slate-100"><span ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false';scheduleSave()" title="雙擊可編輯">${l}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
+            calcMap.forEach((ns, f) => { html += `<div class="calc-item py-2 px-3 rounded-xl bg-indigo-50 flex justify-between items-center group font-bold text-indigo-700 border border-indigo-100"><span ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false';scheduleSave()" title="雙擊可編輯">${ns.join('、')}: ${f}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button></div>`; });
+            html += `</div><button onclick="openInlineNote(this)" class="mt-4 text-xs text-indigo-400 border-2 border-indigo-50 border-dashed w-full py-2 rounded-xl hover:bg-indigo-50 no-export transition-all font-bold">＋ 新增備註內容</button></div>`;
 
             html += `<div class="no-export flex gap-2 mt-4 pt-3 border-t border-slate-100">
                 <button onclick="addJournalRow(this,'debit')" class="text-xs text-blue-500 border border-dashed border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 font-bold transition">＋ 借方科目</button>
@@ -668,7 +646,7 @@
             } else {
                 const div = document.createElement('div');
                 div.className = "calc-item py-2 px-3 rounded-xl bg-indigo-50 flex justify-between items-center group font-bold text-indigo-700 border border-indigo-100";
-                div.innerHTML = `<span>${subjectName ? subjectName + ': ' : ''}${formulaDisplay}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button>`;
+                div.innerHTML = `<span ondblclick="this.contentEditable='true';this.focus()" onblur="this.contentEditable='false';scheduleSave()" title="雙擊可編輯">${subjectName ? subjectName + ': ' : ''}${formulaDisplay}</span><button onclick="this.parentElement.remove();scheduleSave()" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 no-export text-lg">✕</button>`;
                 calcContainer.appendChild(div);
             }
         }
@@ -761,44 +739,71 @@
         }
 
         async function downloadPDF() {
-            // 1. 取得需要隱藏的元素
-            const titleText = document.querySelector('#problem-area h2'); // 題目區字樣
-            const zones = document.querySelectorAll('.drop-zone'); // 中間的借貸方編輯區
+            const scale = 2;
+            const pageW = 210, pageH = 297, margin = 10;
+            const contentW = pageW - margin * 2;
+
+            // 1. 隱藏不需列印的元素
+            const titleText = document.querySelector('#problem-area h2');
+            const noExports = document.querySelectorAll('.no-export');
+            const zones = document.querySelectorAll('.drop-zone');
             const sidebar = document.getElementById('sidebar-container');
             const header = document.querySelector('header');
-            const allButtons = document.querySelectorAll('button');
-            const noExports = document.querySelectorAll('.no-export');
             const balanceCheck = document.getElementById('balance-check');
 
-            // 2. 執行隱藏動作
-            if (titleText) titleText.style.visibility = 'hidden'; // 隱藏字樣但保留空間
+            if (titleText) titleText.style.visibility = 'hidden';
             zones.forEach(z => z.style.display = 'none');
             if (sidebar) sidebar.style.display = 'none';
             if (header) header.style.display = 'none';
             if (balanceCheck) balanceCheck.style.display = 'none';
-            allButtons.forEach(b => b.style.display = 'none');
             noExports.forEach(el => el.style.display = 'none');
 
-            // 3. 處理生成的紀錄（顯示列印專用日期）
-            document.querySelectorAll('.journal-block').forEach(b => {
-                const printDate = b.querySelector('.print-date');
-                if (printDate) printDate.classList.remove('hidden');
-            });
-
-            // 4. 開始截圖
-            const canvas = await html2canvas(document.getElementById('export-content'), {
-                scale: 2,
-                useCORS: true
-            });
-
             const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-            const imgWidth = 210;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
-            doc.save("會計錯題本.pdf");
+            // 2. 擷取題目圖（有貼圖才列印，作為每頁頁首）
+            let headerData = null, headerH = 0;
+            if (document.getElementById('image-preview')?.querySelector('img')) {
+                const c = await html2canvas(document.getElementById('problem-area'), { scale, useCORS: true });
+                headerData = c.toDataURL('image/png');
+                headerH = (c.height * contentW) / c.width;
+            }
 
-            // 5. 恢復網頁原狀（重要！不然下載完網頁會變空白）
+            // 3. 若計算過程區塊內無備註，列印時隱藏整個區塊（含分隔線與標題）
+            document.querySelectorAll('#journal-history .calc-container').forEach(container => {
+                if (container.querySelectorAll('.calc-item').length === 0) {
+                    container.parentElement.style.display = 'none';
+                }
+            });
+
+            // 4. 逐一擷取每個分錄區塊
+            const blocks = Array.from(document.querySelectorAll('#journal-history .journal-block'));
+            const blockImgs = [];
+            for (const block of blocks) {
+                const c = await html2canvas(block, { scale, useCORS: true });
+                blockImgs.push({ data: c.toDataURL('image/png'), h: (c.height * contentW) / c.width });
+            }
+
+            // 4. 排版：題目圖為頁首（滿版寬），分錄依序放入，超出版面則換頁
+            let y = 0;
+            function drawHeader() {
+                if (headerData) {
+                    const fullH = (headerH * pageW) / contentW; // 還原成滿版寬的高度
+                    doc.addImage(headerData, 'PNG', 0, y, pageW, fullH);
+                    y += fullH + 4;
+                }
+            }
+
+            drawHeader();
+            for (const { data, h } of blockImgs) {
+                if (y + h > pageH - margin) {
+                    doc.addPage();
+                    y = margin;
+                }
+                doc.addImage(data, 'PNG', margin, y, contentW, h);
+                y += h + 4;
+            }
+
+            doc.save('會計錯題本.pdf');
             location.reload();
         }
 
